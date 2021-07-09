@@ -22,4 +22,4 @@ ADD . /work
 RUN python3 -m pip install wheel pytest pyflakes mypy
 RUN python3 -m pip install -r requirements.txt
 RUN python3 -m pip install -e .
-RUN python3 ./test/test_sanity.py
+RUN python3 -m pytest ./tests
