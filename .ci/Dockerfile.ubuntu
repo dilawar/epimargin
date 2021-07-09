@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM ubuntu:latest
 
 MAINTAINER Dilawar Singh <dilawar.s.rajput@gmail.com>
 
