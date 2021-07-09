@@ -23,7 +23,7 @@ jobs:
         python-version: 3.9
     - name: Install dependencies
       run: |
-        sudo apt install -y libgdal-dev
+        sudo apt install -y libgdal-dev python3-gdal python3-numpy
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
