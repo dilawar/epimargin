@@ -1,5 +1,5 @@
 DOCKER:=$(shell which docker)
 
-all : Dockerfile.ubuntu
+all : .ci/Dockerfile.debian
 	# Must run from top-directory else ADD won't work.
-	cd .. && $(DOCKER) build -t epimargin/ubuntu .ci -f .ci/$<
+	$(DOCKER) build -t epimargin/ubuntu . -f $<

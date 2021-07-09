@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+import os
 from pathlib import Path
 from typing import Tuple
 
@@ -9,18 +10,22 @@ import pandas as pd
 
 # code readability
 days     = 1
-weeks    = 7 
+weeks    = 7
 years    = 365
 percent  = 1/100
 annually = 1/years
 million  = 1e6
 
 def cwd() -> Path:
-    argv0 = sys.argv[0]
-    if argv0.endswith("ipython"):
-        return Path(".").resolve()
-    return Path(argv0).resolve().parent
-        
+    argv0 = Path(sys.argv[0]).parent
+    # check if it is writable by user, if not, default to current working
+    # directory.
+    # NOTE: This looked like a decent way to do it, See more options here
+    # https://stackoverflow.com/q/2113427/1805129
+    if os.access(argv0, os.W_OK | os.X_OK):
+        return argv0
+    return Path(".").resolve()
+
 def fmt_params(**kwargs) -> str:
     """  get useful experiment tag from a dictionary of experiment settings """
     return ", ".join(f"{k.replace('_', ' ')}: {v}" for (k, v) in kwargs.items())
@@ -32,7 +37,7 @@ def mkdir(p: Path, exist_ok: bool = True) -> Path:
     p.mkdir(exist_ok = exist_ok)
     return p
 
-def setup(**kwargs) -> Tuple[Path]:
+def setup(**kwargs) -> Tuple[Path, Path]:
     root = cwd()
     if len(sys.argv) > 2:
         parser = argparse.ArgumentParser()

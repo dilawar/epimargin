@@ -86,11 +86,11 @@ tqdm==4.45.0
 traitlets==4.3.3
 typed-ast==1.4.1
 typing-extensions==3.7.4.2
-urllib3==1.26.5
+urllib3
 urlpath==1.1.7
 wcwidth==0.1.9
 Werkzeug==1.0.1
 wrapt==1.12.1
 xarray==0.15.1
 xlrd==1.2.0
-zipp==4.1.0
+zipp
