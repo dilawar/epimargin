@@ -62,7 +62,7 @@ def test_example():
         x="date", y="daily cases"
     ).legend().adjust(bottom=0.15, left=0.15).format_xaxis().size(9.5, 6).save(
         figs / "fig_1.svg"
-    ).show()
+    )
 
 
 def main():
