@@ -246,7 +246,7 @@ class PrioritizedAssignment(VaccinationPolicy):
     def name(self) -> str:
         return f"{self.label}prioritized"
 
-    def distribute_doses(self, model: SIR, num_sims: int = 10_000) -> Tuple[np.array]:
+    def distribute_doses(self, model: SIR, num_sims: int = 10_000) -> Tuple[np.ndarray]:
         if self.exhausted(model):
             return (None, None, None)
             # return (np.zeros(self.age_ratios.shape), np.zeros(self.age_ratios.shape), np.zeros(self.age_ratios.shape))

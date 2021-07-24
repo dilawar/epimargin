@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Iterator, Optional, Sequence, Tuple, Union
+from typing import Dict, Iterator, Optional, Sequence, Tuple, Union, List
 
 import geopandas as gpd
 import numpy as np
@@ -14,50 +14,50 @@ Stochastic epidemiological models for forward simulation.
 
 class SIR():
     """ stochastic SIR compartmental model with external introductions """
-    def __init__(self, 
+    def __init__(self,
         name:                str,           # name of unit
         population:          int,           # unit population
-        dT0:        Optional[int]  = None,  # last change in cases, None -> Poisson random intro 
+        dT0:        Optional[int]  = None,  # last change in cases, None -> Poisson random intro
         Rt0:                 float = 1.9,   # initial reproductive rate,
         I0:                  int   = 0,     # initial infected
         R0:                  int   = 0,     # initial recovered
         D0:                  int   = 0,     # initial dead
         S0:         Optional[int]  = None,  # initial susceptibles, calculated from N, I, R, D if not provided
-        infectious_period:   int   = 5,     # how long disease is communicable in days 
-        introduction_rate:   float = 5.0,   # parameter for new community transmissions (lambda) 
-        mortality:           float = 0.02,  # I -> D transition probability 
-        mobility:            float = 0,     # percentage of total population migrating out at each timestep 
+        infectious_period:   int   = 5,     # how long disease is communicable in days
+        introduction_rate:   float = 5.0,   # parameter for new community transmissions (lambda)
+        mortality:           float = 0.02,  # I -> D transition probability
+        mobility:            float = 0,     # percentage of total population migrating out at each timestep
         upper_CI:            float = 0.0,   # initial upper confidence interval for new case counts
         lower_CI:            float = 0.0,   # initial lower confidence interval for new case counts
         CI:                  float = 0.95,  # confidence interval
-        random_seed:         int   = 0      # random seed 
+        random_seed:         int   = 0      # random seed
         ):
-        
-        # save params 
-        self.name  = name 
+
+        # save params
+        self.name  = name
         self.pop0  = population
         self.gamma = 1.0/infectious_period
         self.ll    = introduction_rate
         self.m     = mortality
         self.mu    = mobility
         self.Rt0   = Rt0
-        self.CI    = CI 
+        self.CI    = CI
 
-        # state and delta vectors 
+        # state and delta vectors
         if dT0 is None:
-            dT0 = np.random.poisson(self.ll) # initial number of new cases 
+            dT0 = np.random.poisson(self.ll) # initial number of new cases
         self.dT = [dT0] # case change rate, initialized with the first introduction, if any
         self.Rt = [Rt0]
         self.b  = [np.exp(self.gamma * (Rt0 - 1.0))]
         self.S  = [S0 if S0 is not None else population - R0 - D0 - I0]
-        self.I  = [I0] 
+        self.I  = [I0]
         self.R  = [R0]
         self.D  = [D0]
         self.dR = [0]
         self.dD = [0]
-        self.N  = [population - D0] # total population = S + I + R 
-        self.beta = [Rt0 * self.gamma] # initial contact rate 
-        self.total_cases = [I0] # total cases 
+        self.N  = [population - D0] # total population = S + I + R
+        self.beta = [Rt0 * self.gamma] # initial contact rate
+        self.total_cases = [I0] # total cases
         self.upper_CI = [upper_CI]
         self.lower_CI = [lower_CI]
 
@@ -65,7 +65,7 @@ class SIR():
 
     # period 1: inter-state migratory transmission
     def migration_step(self) -> int:
-        # note: update state *in place* since we consider it the same time period 
+        # note: update state *in place* since we consider it the same time period
         outflux = np.random.poisson(self.mu * self.I[-1])
         new_I = self.I[-1] - outflux
         if new_I < 0: new_I = 0
@@ -74,11 +74,11 @@ class SIR():
         return outflux
 
     # period 2: intra-state community transmission
-    def forward_epi_step(self, dB: int = 0): 
-        # get previous state 
+    def forward_epi_step(self, dB: int = 0):
+        # get previous state
         S, I, R, D, N = (vector[-1] for vector in (self.S, self.I, self.R, self.D, self.N))
 
-        # update state 
+        # update state
         Rt = self.Rt0 * float(S)/float(N)
         b  = np.exp(self.gamma * (Rt - 1))
 
@@ -94,12 +94,12 @@ class SIR():
         num_dead  = poisson.rvs(rate_D)
         D        += num_dead
 
-        rate_R    = (1 - self.m) * self.gamma * I 
+        rate_R    = (1 - self.m) * self.gamma * I
         num_recov = poisson.rvs(rate_R)
         R        += num_recov
 
         I -= (num_dead + num_recov)
-        
+
         if S < 0: S = 0
         if I < 0: I = 0
         if D < 0: D = 0
@@ -107,7 +107,7 @@ class SIR():
         N = S + I + R
         beta = (num_cases * N)/(b * S * I)
 
-        # update state vectors 
+        # update state vectors
         self.Rt.append(Rt)
         self.b.append(b)
         self.S.append(S)
@@ -120,13 +120,13 @@ class SIR():
         self.beta.append(beta)
         self.dT.append(num_cases)
         self.total_cases.append(I + R + D)
-    
-    # parallel poisson draws for infection
-    def parallel_forward_epi_step(self, dB: int = 0, num_sims = 10000): 
-        # get previous state 
-        S, I, R, D, N = (vector[-1].copy() for vector in (self.S, self.I, self.R, self.D, self.N))
 
-        # update state 
+    # parallel poisson draws for infection
+    def parallel_forward_epi_step(self, dB: int = 0, num_sims = 10000):
+        # get previous state
+        S, I, R, D, N = (vector[-1] for vector in (self.S, self.I, self.R, self.D, self.N))
+
+        # update state
         Rt = self.Rt0 * S/N
         b  = np.exp(self.gamma * (Rt - 1))
 
@@ -142,20 +142,21 @@ class SIR():
         num_dead  = poisson.rvs(rate_D, size = num_sims)
         D        += num_dead
 
-        rate_R    = (1 - self.m) * self.gamma * I 
+        rate_R    = (1 - self.m) * self.gamma * I
         num_recov = poisson.rvs(rate_R, size = num_sims)
         R        += num_recov
 
         I -= (num_dead + num_recov)
 
-        S = S.clip(0)
-        I = I.clip(0)
-        D = D.clip(0)
+        # See https://github.com/COVID-IWG/epimargin/issues/126
+        # S = S.clip(0)
+        # I = I.clip(0)
+        # D = D.clip(0)
 
         N = S + I + R
         beta = (num_cases * N)/(b * S * I)
 
-        # update state vectors 
+        # update state vectors
         self.Rt.append(Rt)
         self.b.append(b)
         self.S.append(S)
@@ -170,17 +171,17 @@ class SIR():
         self.total_cases.append(I + R + D)
 
     # parallel binomial draws for infection
-    def parallel_forward_binom_step(self, dB: int = 0, num_sims = 10000): 
-        # get previous state 
-        S, I, R, D, N = (vector[-1].copy() for vector in (self.S, self.I, self.R, self.D, self.N))
+    def parallel_forward_binom_step(self, dB: int = 0, num_sims = 10000):
+        # get previous state
+        S, I, R, D, N = (vector[-1] for vector in (self.S, self.I, self.R, self.D, self.N))
 
-        # update state 
+        # update state
         Rt = self.Rt0 * S/N
         p = self.gamma * Rt * I/N
 
-        num_cases = binom.rvs(n = S.astype(int), p = p, size = num_sims)
-        self.upper_CI.append(binom.ppf(self.CI,     n = S.astype(int), p = p))
-        self.lower_CI.append(binom.ppf(1 - self.CI, n = S.astype(int), p = p))
+        num_cases = binom.rvs(n = int(S), p = p, size = num_sims)
+        self.upper_CI.append(binom.ppf(self.CI,     n = int(S), p = p))
+        self.lower_CI.append(binom.ppf(1 - self.CI, n = int(S), p = p))
 
         I += num_cases
         S -= num_cases
@@ -189,20 +190,21 @@ class SIR():
         num_dead  = poisson.rvs(rate_D, size = num_sims)
         D        += num_dead
 
-        rate_R    = (1 - self.m) * self.gamma * I 
+        rate_R    = (1 - self.m) * self.gamma * I
         num_recov = poisson.rvs(rate_R, size = num_sims)
         R        += num_recov
 
         I -= (num_dead + num_recov)
 
-        S = S.clip(0)
-        I = I.clip(0)
-        D = D.clip(0)
+        # see: https://github.com/COVID-IWG/epimargin/issues/126
+        # S = S.clip(0)
+        # I = I.clip(0)
+        # D = D.clip(0)
 
         N = S + I + R
         # beta = (num_cases * N)/(b * S * I)
 
-        # update state vectors 
+        # update state vectors
         self.Rt.append(Rt)
         # self.b.append(b)
         self.S.append(S)
@@ -227,46 +229,49 @@ class Age_SIRVD(SIR):
     def __init__(self,
         name:                str,           # name of unit
         population:          int,           # unit population
-        dT0:        Optional[int]  = None,  # last change in cases, None -> Poisson random intro 
+        dT0:        Optional[int]  = None,  # last change in cases, None -> Poisson random intro
         Rt0:                 float = 1.9,   # initial reproductive rate,
         S0:                  int   = 0,     # initial susceptible
         I0:                  int   = 0,     # initial infected
         R0:                  int   = 0,     # initial recovered
         D0:                  int   = 0,     # initial dead
-        infectious_period:   int   = 5,     # how long disease is communicable in days 
-        introduction_rate:   float = 5.0,   # parameter for new community transmissions (lambda) 
-        mortality:           float = 0.02,  # I -> D transition probability 
-        mobility:            float = 0,     # percentage of total population migrating out at each timestep 
+        infectious_period:   int   = 5,     # how long disease is communicable in days
+        introduction_rate:   float = 5.0,   # parameter for new community transmissions (lambda)
+        mortality:           float = 0.02,  # I -> D transition probability
+        mobility:            float = 0,     # percentage of total population migrating out at each timestep
         upper_CI:            float = 0.0,   # initial upper confidence interval for new case counts
         lower_CI:            float = 0.0,   # initial lower confidence interval for new case counts
         CI:                  float = 0.95,  # confidence interval
         num_age_bins:        int   = 7,     # number of age bins
-        phi:                 float = 0.25,  # proportion of population vaccinated annually 
+        phi:                 float = 0.25,  # proportion of population vaccinated annually
         ve:                  float = 0.7,   # vaccine effectiveness
-        random_seed:         int   = 0      # random seed,  
+        random_seed:         int   = 0      # random seed,
     ):
         super().__init__(name, population, dT0=dT0, Rt0=Rt0, I0=I0, R0=R0, D0=D0, infectious_period=infectious_period, introduction_rate=introduction_rate, mortality=mortality, mobility=mobility, upper_CI=upper_CI, lower_CI=lower_CI, CI=CI, random_seed=random_seed)
         self.N = [S0 + I0 + R0]
-        shape = (sims, bins) = S0.shape
-        
+
+        # See https://github.com/COVID-IWG/epimargin/issues/126
+        # shape = (sims, bins) = S0   # doesn't make sense in S0 is int.
+        shape = sims = S0   # fixme: it is right?
+
         self.num_age_bins = num_age_bins
         self.phi  = phi
         self.ve   = ve
-        
+
         self.S    = [S0]
 
         self.S_vm = [np.zeros(shape)]
         self.S_vn = [np.zeros(shape)]
-        
+
         self.I_vn = [np.zeros(shape)]
-        
+
         self.R_vm = [np.zeros(shape)]
         self.R_vn = [np.zeros(shape)]
-        
+
         self.D_vn = [np.zeros(shape)]
 
-        self.N_vn = [np.zeros(shape)] # number vaccinated, ineffective 
-        self.N_vm = [np.zeros(shape)] # number vaccinated, immune 
+        self.N_vn = [np.zeros(shape)] # number vaccinated, ineffective
+        self.N_vm = [np.zeros(shape)] # number vaccinated, immune
 
         self.N_v  = [np.zeros(shape)] # total vaccinated
         self.N_nv = [np.zeros(shape)] # total unvaccinated
@@ -276,17 +281,23 @@ class Age_SIRVD(SIR):
 
         self.dT_total = [np.zeros(sims)]
         self.dD_total = [np.zeros(sims)]
-        self.dV = []
+        self.dV : List = []
 
         self.rng = np.random.default_rng(random_seed)
 
-    def parallel_forward_epi_step(self, dV: Optional[np.array], num_sims = 10000): 
+    def parallel_forward_epi_step(self, dV: Optional[np.ndarray], num_sims = 10000): # type: ignore
         """
-            in the SIR and NetworkedSIR, the dB is the reservoir introductions; 
+            in the SIR and NetworkedSIR, the dB is the reservoir introductions;
             here, dV is a (self.age_bins, num_sims)-sized array of vaccination doses (administered)
+
+        Note:
+
+        fixme: The type annotation here and parallel_forward_epi_step of its
+        base class don't match. mypy doesn't like it (see
+        https://stackoverflow.com/questions/54346721/mypy-argument-of-method-incompatible-with-supertype)
         """
-        # get previous state 
-        S, S_vm, S_vn, I, I_vn, R, R_vm, R_vn, D, D_vn, N, N_vn, N_vm = (_[-1].copy() for _ in 
+        # get previous state
+        S, S_vm, S_vn, I, I_vn, R, R_vm, R_vn, D, D_vn, N, N_vn, N_vm = (_[-1] for _ in
             (self.S, self.S_vm, self.S_vn, self.I, self.I_vn, self.R, self.R_vm, self.R_vn, self.D, self.D_vn, self.N, self.N_vn, self.N_vm))
 
         # vaccination occurs here
@@ -327,26 +338,26 @@ class Age_SIRVD(SIR):
         dD_vn = self.rng.poisson(   self.m  * self.gamma * I_vn, size = (num_sims, self.num_age_bins))
         dR    = self.rng.poisson((1-self.m) * self.gamma * I   , size = (num_sims, self.num_age_bins))
         dR_vn = self.rng.poisson((1-self.m) * self.gamma * I_vn, size = (num_sims, self.num_age_bins))
-        
+
         dI    = (dS    - (dD    + dR))
         dI_vn = (dS_vn - (dD_vn + dR_vn))
 
         D    = (D    + dD).clip(0)
         D_vn = (D_vn + dD_vn).clip(0)
-        
+
         R    = (R    + dR).clip(0)
         R_vn = (R_vn + dR_vn).clip(0)
-        
+
         I    = (I    + dI).clip(0)
         I_vn = (I_vn + dI_vn).clip(0)
 
         N    = S    + I    + R
         N_vn = S_vn + I_vn + R_vn
-        N_vm = S_vm +        R_vm 
+        N_vm = S_vm +        R_vm
 
         # beta = dT[:, None] * N/(b * (S + S_vn) * (I + I_vn))
 
-        # calculate vax policy evaluation metrics 
+        # calculate vax policy evaluation metrics
         N_v  = np.clip((S_vm + S_vn + I_vn + D_vn + R_vn + R_vm), a_min = 0, a_max = self.N[0])
         N_nv = self.N[0] - N_v
         pi   = N_v/self.N[0]
@@ -354,7 +365,7 @@ class Age_SIRVD(SIR):
         q1 = np.nan_to_num(1 - (D_vn - self.D_vn[0])/N_v , nan = 0, neginf = 1).clip(0, 1)
         q0 = np.nan_to_num(1 - (D    - self.D   [0])/N_nv, nan = 0, neginf = 1).clip(0, 1)
 
-        # update state vectors 
+        # update state vectors
         self.Rt.append(Rt)
         self.b.append(b)
         self.S.append(S)
@@ -377,7 +388,7 @@ class Age_SIRVD(SIR):
         self.dT_total.append(dT)
         self.dD_total.append((dD + dD_vn).sum(axis = 1))
         self.total_cases.append(I + R + D)
-        
+
         self.N_v.append(N_v)
         self.N_nv.append(N_nv)
         self.pi.append(pi)
@@ -399,11 +410,11 @@ class NetworkedSIR():
         return len(self.units)
 
     def tick(self, migrations: np.matrix):
-        # run migration step 
+        # run migration step
         outflux       = [unit.migration_step() for unit in self.units]
         transmissions = [flux * migrations[i, :].sum() for (i, flux) in enumerate(outflux)]
-        
-        # now run forward epidemiological model 
+
+        # now run forward epidemiological model
         for (unit, tmx) in zip(self.units, transmissions):
             unit.forward_epi_step(tmx)
 
@@ -412,7 +423,7 @@ class NetworkedSIR():
             migrations = self.migrations
         for _ in range(days):
             self.tick(migrations)
-        return self 
+        return self
 
     def __iter__(self) -> Iterator[SIR]:
         return iter(self.units)
@@ -429,26 +440,29 @@ class NetworkedSIR():
                 if val.__code__.co_argcount == 1:
                     for unit in self.units:
                         unit.__setattr__(attr, val(unit))
-                else: 
+                else:
                     for (i, unit) in enumerate(self.units):
                         unit.__setattr__(attr, val(i, unit))
             elif isinstance(val, dict):
                 for unit in self.units:
                     unit.__setattr__(attr, val[unit.name])
-            else: 
+            else:
                 for unit in self.units:
                     unit.__setattr__(attr, val)
-        return self 
+        return self
 
     def aggregate(self, curves: Union[Sequence[str], str] = ["Rt", "b", "S", "I", "R", "D", "P", "beta"]) -> Union[Dict[str, Sequence[float]], Sequence[float]]:
+        list_of_curves : Sequence[str] = []
         if isinstance(curves, str):
             single_curve = curves
-            curves = [curves]
-        else: 
-            single_curve = False
-        aggs = { 
+            list_of_curves = [curves]
+        else:
+            single_curve = ""
+            list_of_curves = curves
+
+        aggs : Dict[str, Sequence[float]] = {
             curve: list(map(sum, zip(*(unit.__getattribute__(curve) for unit in self.units))))
-            for curve in curves
+            for curve in list_of_curves
         }
 
         if single_curve:
@@ -457,28 +471,28 @@ class NetworkedSIR():
 
 class SEIR():
     """ stochastic SEIR model without external introductions """
-    def __init__(self, 
+    def __init__(self,
         name:                str,           # name of unit
         population:          int,           # unit population
-        dT0:        Optional[int]  = None,  # last change in cases, None -> Poisson random intro 
+        dT0:        Optional[int]  = None,  # last change in cases, None -> Poisson random intro
         Rt0:                 float = 1.9,   # initial reproductive rate,
         E0:                  int   = 0,     # initial exposed
         I0:                  int   = 0,     # initial infected
         R0:                  int   = 0,     # initial recovered
         D0:                  int   = 0,     # initial dead
-        infectious_period:   int   = 5,     # how long disease is communicable in days 
+        infectious_period:   int   = 5,     # how long disease is communicable in days
         incubation_period:   int   = 5,     # how long the diseas takes to incubate
-        introduction_rate:   float = 5.0,   # parameter for new community transmissions (lambda) 
-        mortality:           float = 0.02,  # I -> D transition probability 
-        mobility:            float = 0,     # percentage of total population migrating out at each timestep 
+        introduction_rate:   float = 5.0,   # parameter for new community transmissions (lambda)
+        mortality:           float = 0.02,  # I -> D transition probability
+        mobility:            float = 0,     # percentage of total population migrating out at each timestep
         upper_CI:            float = 0.0,   # initial upper confidence interval for new case counts
         lower_CI:            float = 0.0,   # initial lower confidence interval for new case counts
         CI:                  float = 0.95,  # confidence interval
-        random_seed:         int   = 0      # random seed 
+        random_seed:         int   = 0      # random seed
         ):
-        
-        # save params 
-        self.name  = name 
+
+        # save params
+        self.name  = name
         self.pop0  = population
         self.gamma = 1.0/infectious_period
         self.sigma = 1.0/incubation_period
@@ -486,32 +500,32 @@ class SEIR():
         self.m     = mortality
         self.mu    = mobility
         self.Rt0   = Rt0
-        self.CI    = CI 
+        self.CI    = CI
 
-        # state and delta vectors 
+        # state and delta vectors
         if dT0 is None:
-            dT0 = np.random.poisson(self.ll) # initial number of new cases 
+            dT0 = np.random.poisson(self.ll) # initial number of new cases
         self.dT = [dT0] # case change rate, initialized with the first introduction, if any
         self.Rt = [Rt0]
         self.b  = [np.exp(self.gamma * (Rt0 - 1.0))]
         self.S  = [population - E0 - I0 - R0 - D0]
         self.E  = [E0]
-        self.I  = [I0] 
+        self.I  = [I0]
         self.R  = [R0]
         self.D  = [D0]
-        self.N  = [population - D0] # total population = S + I + R 
-        self.beta = [Rt0 * self.gamma] # initial contact rate 
-        self.total_cases = [I0] # total cases 
+        self.N  = [population - D0] # total population = S + I + R
+        self.beta = [Rt0 * self.gamma] # initial contact rate
+        self.total_cases = [I0] # total cases
         self.upper_CI = [upper_CI]
         self.lower_CI = [lower_CI]
 
         np.random.seed(random_seed)
-    
-    def forward_epi_step(self, dB: int = 0): 
-        # get previous state 
+
+    def forward_epi_step(self, dB: int = 0):
+        # get previous state
         S, E, I, R, D, N = (vector[-1] for vector in (self.S, self.E, self.I, self.R, self.D, self.N))
 
-        # update state 
+        # update state
         Rt = self.Rt0 * float(S)/float(N)
         b  = np.exp(self.gamma * (Rt - 1))
 
@@ -526,19 +540,19 @@ class SEIR():
         rate_I    = self.sigma * E
         num_inf   = poisson.rvs(rate_I)
 
-        E -= num_inf 
+        E -= num_inf
         I += num_inf
 
         rate_D    = self.m * self.gamma * I
         num_dead  = poisson.rvs(rate_D)
         D        += num_dead
 
-        rate_R    = (1 - self.m) * self.gamma * I 
+        rate_R    = (1 - self.m) * self.gamma * I
         num_recov = poisson.rvs(rate_R)
         R        += num_recov
 
         I -= (num_dead + num_recov)
-        
+
         if S < 0: S = 0
         if E < 0: E = 0
         if I < 0: I = 0
@@ -548,7 +562,7 @@ class SEIR():
         N = S + E + I + R
         beta = (num_cases * N)/(b * S * I)
 
-        # update state vectors 
+        # update state vectors
         self.Rt.append(Rt)
         self.b.append(b)
         self.S.append(S)
@@ -564,40 +578,40 @@ class SEIR():
 class AR1():
     """ first-order autoregressive model with white noise """
     def __init__(self, phi: float = 1.01, sigma: float = 1, I0: int = 10, random_seed: int = 0):
-        self.phi = phi 
+        self.phi = phi
         self.sigma = sigma
         self.I = [I0]
         np.random.seed(random_seed)
-    
+
     def set_parameters(self, **kwargs):
         if "phi"   in kwargs: self.phi   = kwargs["phi"]
         if "sigma" in kwargs: self.sigma = kwargs["sigma"]
-        return self 
+        return self
 
     def run(self, days: int):
         for _ in range(days):
             self.I.append(self.phi * self.I[-1] + np.random.normal(scale = self.sigma))
-        return self 
+        return self
 
 class MigrationSpikeModel(NetworkedSIR):
     """ networked SIR model simulating a population influx at a given time """
     def __init__(self, units: Sequence[SIR], introduction_time: Sequence[int], migratory_influx: Dict[str, int], default_migrations: Optional[np.matrix] = None, random_seed: Optional[int] = None):
         self.counter = 0
-        self.migratory_influx  = migratory_influx 
+        self.migratory_influx  = migratory_influx
         self.introduction_time = introduction_time
         super().__init__(units, default_migrations, random_seed)
 
     def tick(self, migrations: np.matrix):
         self.counter += 1
-        # run migration step 
+        # run migration step
         outflux       = [unit.migration_step() for unit in self.units]
         transmissions = [flux * migrations[i, :].sum() for (i, flux) in enumerate(outflux)]
-        
-        # now run forward epidemiological model, and add spike at intro time 
+
+        # now run forward epidemiological model, and add spike at intro time
         if self.counter == self.introduction_time:
             for (unit, tmx) in zip(self.units, transmissions):
                 unit.forward_epi_step(tmx + self.migratory_influx[unit.name])
-        else: 
+        else:
             for (unit, tmx) in zip(self.units, transmissions):
                 unit.forward_epi_step(tmx)
 
@@ -616,7 +630,7 @@ def gravity_matrix(gdf_path: Path, population_path: Path) -> Tuple[Sequence[str]
 
     centroids = [list(pt.coords)[0] for pt in gdf.centroid]
     P = distance_matrix(centroids, centroids)
-    P[P != 0] = P[P != 0] ** -1.0 
+    P[P != 0] = P[P != 0] ** -1.0
     P *= np.array(populations)[:, None]
     P /= P.sum(axis = 0)
 
