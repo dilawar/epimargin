@@ -22,15 +22,15 @@ def simulate_lockdown(model: SIR, lockdown_period: int, total_time: int, Rt0_man
         .run(total_time - lockdown_period, migrations = migrations)
 
 def simulate_adaptive_control(
-    model: SIR, 
-    initial_run: int, 
-    total_time: int, 
-    lockdown: np.matrix, 
-    migrations: np.matrix, 
+    model: SIR,
+    initial_run: int,
+    total_time: int,
+    lockdown: np.matrix,
+    migrations: np.matrix,
     R_m: Dict[str, float],
-    beta_v: Dict[str, float], 
-    beta_m: Dict[str, float], 
-    evaluation_period: int = 2*weeks, 
+    beta_v: Dict[str, float],
+    beta_m: Dict[str, float],
+    evaluation_period: int = 2*weeks,
     adjacency: Optional[np.matrix] = None) -> SIR:
     """ simulate the Malani et al. adaptive lockdown policy where districts are assigned to lockdown stringency buckets based on Rt """
     n = len(model)
@@ -45,18 +45,18 @@ def simulate_adaptive_control(
         category_transitions = {}
         for (i, unit) in enumerate(model):
             latest_Rt = unit.Rt[-1]
-            if latest_Rt < 1: 
+            if latest_Rt < 1:
                 Gs.add(i)
                 beta_cat = 0
-            else: 
+            else:
                 if days_run < initial_run + evaluation_period: # force first period to be lockdown
                     Rs.add(i)
                     beta_cat = 3
-                else: # categorize districts based on Rt 
-                    if latest_Rt < 1.5: 
+                else: # categorize districts based on Rt
+                    if latest_Rt < 1.5:
                         Ys.add(i)
                         beta_cat = 1
-                    elif latest_Rt < 2: 
+                    elif latest_Rt < 2:
                         Os.add(i)
                         beta_cat = 2
                     else:
@@ -64,7 +64,7 @@ def simulate_adaptive_control(
                         beta_cat = 3
             if unit.name not in last_category:
                 last_category[unit.name] = beta_cat
-            else: 
+            else:
                 old_beta_cat = last_category[unit.name]
                 if old_beta_cat != beta_cat:
                     if beta_cat < old_beta_cat and beta_cat != (old_beta_cat - 1): # force gradual release
@@ -72,12 +72,12 @@ def simulate_adaptive_control(
                         if i in categories[old_beta_cat]: categories[old_beta_cat].remove(i)
                         categories[beta_cat].add(i)
                     category_transitions[unit.name] = beta_cat
-                    last_category[unit.name] = beta_cat 
+                    last_category[unit.name] = beta_cat
             gantt.append([unit.name, days_run, beta_cat, max(0, latest_Rt)])
 
-        for (unit_name, beta_cat) in category_transitions.items(): 
+        for (unit_name, beta_cat) in category_transitions.items():
             unit =  model[unit_name]
-            new_beta = beta_v[unit.name] - (beta_cat * (beta_v[unit.name] - beta_m[unit.name])/3.0)                
+            new_beta = beta_v[unit.name] - (beta_cat * (beta_v[unit.name] - beta_m[unit.name])/3.0)
             unit.beta[-1] = new_beta
             unit.Rt0 = new_beta * unit.gamma
 
@@ -88,8 +88,8 @@ def simulate_adaptive_control(
         model.run(evaluation_period, phased_migration)
         days_run += evaluation_period
 
-    model.gantt = gantt 
-    return model 
+    model.gantt = gantt
+    return model
 
 def simulate_adaptive_control_MHA(model: SIR, initial_run: int, total_time: int, lockdown: np.matrix, migrations: np.matrix, R_m: Dict[str, float], beta_v: Dict[str, float], beta_m: Dict[str, float], evaluation_period = 2*weeks):
     """ simulates the version of adaptive control suggested by the Indian Ministry of Home Affairs, where the trigger is based on infection count doubling time """
@@ -106,20 +106,20 @@ def simulate_adaptive_control_MHA(model: SIR, initial_run: int, total_time: int,
         for (i, unit) in enumerate(model):
             latest_Rt = unit.Rt[-1]
             if days_run < initial_run + evaluation_period: # force first period to MHA
-                if unit.I[-4] != 0 and unit.I[-1]/unit.I[-4] > 2: # doubling time trigger 
+                if unit.I[-4] != 0 and unit.I[-1]/unit.I[-4] > 2: # doubling time trigger
                     Rs.add(i)
                     beta_cat = 3
                 else:
                     Gs.add(i)
                     beta_cat = 0
-            else: 
-                if latest_Rt < 1: 
+            else:
+                if latest_Rt < 1:
                     Gs.add(i)
                     beta_cat = 0
-                elif latest_Rt < 1.5: 
+                elif latest_Rt < 1.5:
                     Ys.add(i)
                     beta_cat = 1
-                elif latest_Rt < 2: 
+                elif latest_Rt < 2:
                     Os.add(i)
                     beta_cat = 2
                 else:
@@ -127,7 +127,7 @@ def simulate_adaptive_control_MHA(model: SIR, initial_run: int, total_time: int,
                     beta_cat = 3
             if unit.name not in last_category:
                 last_category[unit.name] = beta_cat
-            else: 
+            else:
                 old_beta_cat = last_category[unit.name]
                 if old_beta_cat != beta_cat:
                     if beta_cat < old_beta_cat and beta_cat != (old_beta_cat - 1): # force gradual release
@@ -135,12 +135,12 @@ def simulate_adaptive_control_MHA(model: SIR, initial_run: int, total_time: int,
                     if i in categories[old_beta_cat]: categories[old_beta_cat].remove(i)
                     categories[beta_cat].add(i)
                     category_transitions[unit.name] = beta_cat
-                    last_category[unit.name] = beta_cat 
+                    last_category[unit.name] = beta_cat
             gantt.append([unit.name, days_run, beta_cat, max(0, latest_Rt)])
 
-        for (unit_name, beta_cat) in category_transitions.items(): 
+        for (unit_name, beta_cat) in category_transitions.items():
             unit =  model[unit_name]
-            new_beta = beta_v[unit.name] - (beta_cat * (beta_v[unit.name] - beta_m[unit.name])/3.0)                
+            new_beta = beta_v[unit.name] - (beta_cat * (beta_v[unit.name] - beta_m[unit.name])/3.0)
             unit.beta[-1] = new_beta
             unit.Rt0 = new_beta * unit.gamma
 
@@ -151,22 +151,22 @@ def simulate_adaptive_control_MHA(model: SIR, initial_run: int, total_time: int,
         model.run(evaluation_period, phased_migration)
         days_run += evaluation_period
 
-    model.gantt = gantt 
-    return model 
+    model.gantt = gantt
+    return model
 
 def simulate_PID_controller(
-    model: SIR, 
-    initial_run: int, 
+    model: SIR,
+    initial_run: int,
     total_time: int,
     Rtarget: float = 0.9,
-    kP: float = 0.05, 
+    kP: float = 0.05,
     kI: float = 0.5,
     kD: float = 0,
     Dt: float = 1.0) -> SIR:
     """ implements a hypothetical proportional-integral-derivative control policy where the error term is Rt magnitude above 1 """
-    # initial run without PID 
+    # initial run without PID
     model.run(initial_run)
-    
+
     # set up PID running variables
     integral   = 0
     derivative = 0
@@ -175,31 +175,32 @@ def simulate_PID_controller(
 
     z = np.zeros((len(model), len(model)))
 
-    # run forward model 
+    # run forward model
     for i in range(total_time - initial_run):
-        model[0].Rt0 -= u 
+        model[0].Rt0 -= u
         model.run(1, z)
 
         error = model[0].Rt[-1] - Rtarget
-        integral  += error * Dt 
+        integral  += error * Dt
         derivative = (error - prev_error)/Dt
 
         u = kP * error + kI * integral + kD * derivative
         prev_error = error
-    return model 
+    return model
 
 # Vaccination policies
 class VaccinationPolicy():
     """ parent class to hold vaccination policy state """
-    def __init__(self, bin_populations: np.array) -> None:
+    def __init__(self, bin_populations: np.array, daily_doses: int) -> None:
         self.bin_populations = bin_populations
+        self.daily_doses = daily_doses
 
     def name(self) -> str:
         return self.__class__.__name__.lower()
 
     @abstractmethod
     def distribute_doses(self, model: SIR, *kwargs) -> Tuple[np.array]:
-        pass 
+        pass
 
     def exhausted(self, model) -> bool:
         return self.daily_doses * len(model.Rt) > model.pop0
@@ -213,7 +214,7 @@ class VaccinationPolicy():
 class RandomVaccineAssignment(VaccinationPolicy):
     """ assigns vaccines to members of the population randomly """
     def __init__(self, daily_doses: int, effectiveness: float, bin_populations: np.array, age_ratios: np.array):
-        self.daily_doses = daily_doses 
+        super().__init__(bin_populations, daily_doses)
         self.age_ratios = age_ratios
         self.effectiveness = effectiveness
         self.bin_populations = bin_populations
@@ -259,17 +260,17 @@ class PrioritizedAssignment(VaccinationPolicy):
             if self.bin_populations[age_bin] > self.daily_doses:
                 self.bin_populations[age_bin] -= self.daily_doses
                 dVx[age_bin] = self.daily_doses
-            else: 
+            else:
                 leftover = self.daily_doses - self.bin_populations[age_bin]
                 dVx[age_bin] = self.bin_populations[age_bin]
                 self.bin_populations[age_bin] = 0
                 if bin_idx != len(self.bin_populations) - 1:
                     dVx[self.prioritization[bin_idx + 1]] = leftover
-                    self.bin_populations[self.prioritization[bin_idx + 1]] -= leftover 
-        else: 
+                    self.bin_populations[self.prioritization[bin_idx + 1]] -= leftover
+        else:
             print("vaccination exhausted", self.bin_populations, self.prioritization)
         return (
-            dVx, 
-            dVx * self.effectiveness, 
+            dVx,
+            dVx * self.effectiveness,
             dVx * self.effectiveness * (model.S[-1].mean()/model.N[-1].mean())
         )
