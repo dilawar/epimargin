@@ -1,7 +1,7 @@
 import datetime
 from collections import namedtuple
 from pathlib import Path
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence, Tuple, List, Dict
 
 import matplotlib as mpl
 import matplotlib.dates as mdates
@@ -391,11 +391,11 @@ def simulations(
     num_sims   = len(simulation_results)
     total_time = len(policy_outcomes[0][0])
 
-    ranges = [{"max": [], "min": [], "mdn": [], "avg": []} for _ in range(len(policy_outcomes))]
+    ranges : List[Dict[str, List]] = [{"max": [], "min": [], "mdn": [], "avg": []} for _ in range(len(policy_outcomes))]
 
     for (i, policy) in enumerate(policy_outcomes):
-        for t in range(total_time):
-            curve_sorted = sorted([curve[t] for curve in policy])
+        for _t in range(total_time):
+            curve_sorted = sorted([curve[_t] for curve in policy])
             ranges[i]["min"].append(curve_sorted[0])
             ranges[i]["max"].append(curve_sorted[-1])
             ranges[i]["mdn"].append(curve_sorted[num_sims//2])
