@@ -272,5 +272,5 @@ class PrioritizedAssignment(VaccinationPolicy):
         return (
             dVx,
             dVx * self.effectiveness,
-            dVx * self.effectiveness * (model.S[-1].mean()/model.N[-1].mean())
+            dVx * self.effectiveness * (model.S[-1]/model.N[-1])
         )
