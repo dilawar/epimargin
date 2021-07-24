@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Dict, Iterator, Optional, Sequence, Tuple, Union, List
 
-import geopandas as gpd
 import numpy as np
 import pandas as pd
 from scipy.spatial import distance_matrix
@@ -616,6 +615,7 @@ class MigrationSpikeModel(NetworkedSIR):
                 unit.forward_epi_step(tmx)
 
 def gravity_matrix(gdf_path: Path, population_path: Path) -> Tuple[Sequence[str], Sequence[float], np.matrix]:
+    import geopandas as gpd
     gdf = gpd.read_file(gdf_path)
     districts = [d.upper() for d in gdf.district.values]
 
