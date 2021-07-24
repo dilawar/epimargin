@@ -521,7 +521,7 @@ def choropleth(gdf, label_fn = lambda _: "", col = "Rt", title = "$R_t$", label_
 
     return PlotDevice(fig)
 
-def double_choropleth(gdf, label_fn = lambda _: "", Rt_col = "Rt", Rt_proj_col = "Rt_proj", titles = ["Current $R_t$", "Projected $R_t$ (1 Week)"], arrangement = (1, 2), label_kwargs = {}, mappable = sm):
+def double_choropleth(gdf, label_fn = lambda _: "", Rt_col = "Rt", Rt_proj_col = "Rt_proj", titles = ["Current $R_t$", "Projected $R_t$ (1 Week)"], arrangement = (1, 2), label_kwargs = {}, mappable = sm) -> PlotDevice:
     """ plot two choropleths side-by-side based on multiple metrics """
     gdf["pt"] = gdf["geometry"].centroid
     fig, (ax1, ax2) = plt.subplots(*arrangement)
@@ -550,5 +550,7 @@ def double_choropleth_v(*args, **kwargs):
     kwargs["arrangement"] = (2, 1)
     return double_choropleth(*args, **kwargs)
 
-double_choropleth.horizontal = double_choropleth
-double_choropleth.vertical   = double_choropleth_v
+
+# FIXME: lambda x: PlotDevice(...) does not have vertical or horizontal properties
+# double_choropleth.horizontal = double_choropleth
+# double_choropleth.vertical   = double_choropleth_v
