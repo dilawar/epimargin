@@ -23,10 +23,10 @@ jobs:
         sudo apt install -y libgdal-dev python3-gdal python3-numpy
         python -m pip install --upgrade pip wheel setuptools poetry
         poetry install
-    - name: Lint with flake8
+    - name: Lint and type checking
       run: |
-        # stop the build if there are Python syntax errors or undefined names
-        poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        poetry run mypy --ignore-missing-imports epimargin
+        poetry run pylint -E epimargin
     - name: Test with pytest
       run: |
         poetry run pytest tests
