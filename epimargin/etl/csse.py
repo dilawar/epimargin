@@ -24,7 +24,7 @@ def fetch_range(dst: Path, start: str, end: str):
 
 def load(dst: Path, start: str, end: str, selector: Optional[str] = None) -> pd.DataFrame:
     return pd.concat([
-        (lambda _: _.query(selector) if selector else _)(pd.read_csv(dst/(date.strftime(DATE_FMT) + ".csv"))).assign(date = date) for date in pd.date_range(pd.Timestamp(start), pd.Timestamp(end))
+        (lambda _: _.query(selector) if selector else _)(pd.DataFrame(pd.read_csv(dst/(date.strftime(DATE_FMT) + ".csv")))).assign(date = date) for date in pd.date_range(pd.Timestamp(start), pd.Timestamp(end))
     ], axis = 0)
 
 def load_country(dst: Path, start: str, end: str, country: str, schema_version: int = 1):
@@ -34,12 +34,12 @@ def load_country(dst: Path, start: str, end: str, country: str, schema_version: 
 
 def assemble_timeseries(df: pd.DataFrame, province: Optional[str] = None):
     totals = (
-        df[df.Province_State == province].set_index("date") if province else 
+        df[df.Province_State == province].set_index("date") if province else
         df.set_index(["date", "Province_State"]).stack().sum(level = [0, 2]).unstack()
     )[["Deaths", "Recovered", "Confirmed"]]\
         .rename(columns = {"Confirmed": "T", "Deaths": "D", "Recovered": "R"})
     return pd.concat([
-        totals, 
+        totals,
         totals.diff()\
             .rename(lambda x: "d" + x, axis = 1)
         ], axis = 1)\

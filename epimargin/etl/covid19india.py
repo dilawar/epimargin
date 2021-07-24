@@ -12,7 +12,7 @@ from ..utils import assume_missing_0
 new_states = set("Telangana")
 
 # states renamed in 2011
-renamed_states = { 
+renamed_states = {
     "Orissa"      : "Odisha",
     "Pondicherry" : "Puducherry"
 }
@@ -106,7 +106,7 @@ drop_cols_v3 = {
     "Gender",
     "Detected City",
     "Notes",
-    'Contracted from which Patient (Suspected)', 
+    'Contracted from which Patient (Suspected)',
     'Nationality',
     "Source_1",
     "Source_2",
@@ -119,40 +119,40 @@ drop_cols_v3 = {
 }
 
 columns_v4 = v4 = [
-    'Entry_ID', 
-    'State Patient Number', 
-    'Date Announced', 
+    'Entry_ID',
+    'State Patient Number',
+    'Date Announced',
     'Age Bracket',
-    'Gender', 
-    'Detected City', 
-    'Detected District', 
+    'Gender',
+    'Detected City',
+    'Detected District',
     'Detected State',
-    'State code', 
-    'Num Cases', 
+    'State code',
+    'Num Cases',
     'Current Status',
-    'Contracted from which Patient (Suspected)', 
-    'Notes', 
+    'Contracted from which Patient (Suspected)',
+    'Notes',
     'Source_1',
-    'Source_2', 
-    'Source_3', 
-    'Nationality', 
+    'Source_2',
+    'Source_3',
+    'Nationality',
     'Type of transmission',
-    'Status Change Date', 
+    'Status Change Date',
     'Patient Number'
 ]
 
 drop_cols_v4 = {
     "Entry_ID",
     'Age Bracket',
-    'Gender', 
+    'Gender',
     'Detected City',
     'State code',
     'Contracted from which Patient (Suspected)',
-    'Notes', 
+    'Notes',
     'Source_1',
-    'Source_2', 
-    'Source_3', 
-    'Nationality', 
+    'Source_2',
+    'Source_3',
+    'Nationality',
     'Type of transmission',
     "State Patient Number"
 }
@@ -180,7 +180,7 @@ state_code_lookup = {
     'BR'  : 'Bihar',
     'CH'  : 'Chandigarh',
     'CT'  : 'Chhattisgarh',
-    'DD'  : 'Daman & Diu', 
+    'DD'  : 'Daman & Diu',
     'DNDD': 'Dadra & Nagar Haveli and Daman & Diu',
     'DL'  : 'Delhi',
     'DN'  : 'Dadra & Nagar Haveli',
@@ -215,52 +215,52 @@ state_code_lookup = {
     'WB'  : 'West Bengal',
 }
 
-state_name_lookup = { 
-    'Andaman & Nicobar Islands'  : 'AN', 
-    'Andaman And Nicobar Islands': 'AN', 
-    'Andaman and Nicobar Islands': 'AN', 
-    'Andhra Pradesh'             : 'AP', 
-    'Arunachal Pradesh'          : 'AR', 
-    'Assam'                      : 'AS', 
-    'Bihar'                      : 'BR', 
-    'Chandigarh'                 : 'CH', 
-    'Chhattisgarh'               : 'CT', 
-    'Daman & Diu'                : 'DD', 
-    'Daman And Diu'              : 'DD', 
-    'Daman and Diu'              : 'DD', 
-    'Delhi'                      : 'DL', 
-    'Dadra & Nagar Haveli'       : 'DN', 
-    'Dadra And Nagar Haveli'     : 'DN', 
-    'Dadra and Nagar Haveli'     : 'DN', 
-    'Goa'                        : 'GA', 
-    'Gujarat'                    : 'GJ', 
-    'Himachal Pradesh'           : 'HP', 
-    'Haryana'                    : 'HR', 
-    'Jharkhand'                  : 'JH', 
-    'Jammu & Kashmir'            : 'JK', 
-    'Jammu and Kashmir'          : 'JK', 
-    'Jammu And Kashmir'          : 'JK', 
-    'Karnataka'                  : 'KA', 
-    'Kerala'                     : 'KL', 
-    'Ladakh'                     : 'LA', 
-    'Lakshadweep'                : 'LD', 
-    'Maharashtra'                : 'MH', 
-    'Meghalaya'                  : 'ML', 
-    'Manipur'                    : 'MN', 
-    'Madhya Pradesh'             : 'MP', 
-    'Mizoram'                    : 'MZ', 
-    'Nagaland'                   : 'NL', 
-    'Odisha'                     : 'OR', 
-    'Punjab'                     : 'PB', 
-    'Puducherry'                 : 'PY', 
-    'Rajasthan'                  : 'RJ', 
-    'Sikkim'                     : 'SK', 
-    'Telangana'                  : 'TG', 
-    'Tamil Nadu'                 : 'TN', 
-    'Tripura'                    : 'TR', 
-    'India'                      : 'TT', 
-    'State Unassigned'           : 'UN', 
-    'Uttar Pradesh'              : 'UP', 
+state_name_lookup = {
+    'Andaman & Nicobar Islands'  : 'AN',
+    'Andaman And Nicobar Islands': 'AN',
+    'Andaman and Nicobar Islands': 'AN',
+    'Andhra Pradesh'             : 'AP',
+    'Arunachal Pradesh'          : 'AR',
+    'Assam'                      : 'AS',
+    'Bihar'                      : 'BR',
+    'Chandigarh'                 : 'CH',
+    'Chhattisgarh'               : 'CT',
+    'Daman & Diu'                : 'DD',
+    'Daman And Diu'              : 'DD',
+    'Daman and Diu'              : 'DD',
+    'Delhi'                      : 'DL',
+    'Dadra & Nagar Haveli'       : 'DN',
+    'Dadra And Nagar Haveli'     : 'DN',
+    'Dadra and Nagar Haveli'     : 'DN',
+    'Goa'                        : 'GA',
+    'Gujarat'                    : 'GJ',
+    'Himachal Pradesh'           : 'HP',
+    'Haryana'                    : 'HR',
+    'Jharkhand'                  : 'JH',
+    'Jammu & Kashmir'            : 'JK',
+    'Jammu and Kashmir'          : 'JK',
+    'Jammu And Kashmir'          : 'JK',
+    'Karnataka'                  : 'KA',
+    'Kerala'                     : 'KL',
+    'Ladakh'                     : 'LA',
+    'Lakshadweep'                : 'LD',
+    'Maharashtra'                : 'MH',
+    'Meghalaya'                  : 'ML',
+    'Manipur'                    : 'MN',
+    'Madhya Pradesh'             : 'MP',
+    'Mizoram'                    : 'MZ',
+    'Nagaland'                   : 'NL',
+    'Odisha'                     : 'OR',
+    'Punjab'                     : 'PB',
+    'Puducherry'                 : 'PY',
+    'Rajasthan'                  : 'RJ',
+    'Sikkim'                     : 'SK',
+    'Telangana'                  : 'TG',
+    'Tamil Nadu'                 : 'TN',
+    'Tripura'                    : 'TR',
+    'India'                      : 'TT',
+    'State Unassigned'           : 'UN',
+    'Uttar Pradesh'              : 'UP',
     'Uttarakhand'                : 'UT',
     'West Bengal'                : 'WB',
     'Dadra And Nagar Haveli And Daman And Diu' : "DNDD"
@@ -275,16 +275,16 @@ def standardize_column_headers(df: pd.DataFrame):
 
 # load data until April 26
 def load_data_v3(path: Path, drop = drop_cols_v3):
-    cases = pd.read_csv(path, 
+    cases = pd.read_csv(path,
         usecols     = set(columns_v3) - drop,
         dayfirst    = True, # source data does not have consistent date format so cannot rely on inference
         parse_dates = ["Date Announced", "Status Change Date"])
     standardize_column_headers(cases)
     return cases
 
-# load data for April 27 - May 09  
+# load data for April 27 - May 09
 def load_data_v4(path: Path, drop = drop_cols_v3):
-    cases = pd.read_csv(path, 
+    cases = pd.read_csv(path,
         usecols     = set(columns_v4) - drop,
         dayfirst    = True, # source data does not have consistent date format so cannot rely on inference
         parse_dates = ["Date Announced", "Status Change Date"])
@@ -299,7 +299,7 @@ def add_time_col(grp_df):
 def get_time_series(df: pd.DataFrame, group_col: Optional[Sequence[str]] = None, drop_negatives = True) -> pd.DataFrame:
     if group_col:
         group_cols = (group_col if isinstance(group_col, list) else [group_col]) + ["status_change_date", "current_status"]
-    else: 
+    else:
         group_cols = ["status_change_date", "current_status"]
     if drop_negatives:
         df = df[df["num_cases"] >= 0]
@@ -319,16 +319,16 @@ def load_all_data(v3_paths: Sequence[Path], v4_paths: Sequence[Path]) -> pd.Data
     all_cases = pd.concat(cases_v3 + cases_v4)
     all_cases["status_change_date"] = all_cases["status_change_date"].fillna(all_cases["date_announced"])
     all_cases["detected_state"]     = all_cases["detected_state"].str.strip().str.title()
-    all_cases["detected_district"]  = all_cases["detected_district"].str.strip().str.title()  
+    all_cases["detected_district"]  = all_cases["detected_district"].str.strip().str.title()
     return all_cases.dropna(subset  = ["detected_state"])
 
 # assuming analysis for data structure from COVID19-India saved as resaved, properly-quoted file (v1 and v2)
-def load_data(datapath: Path, reduced: bool = False, schema: Optional[Sequence[str]] = None) -> pd.DataFrame: 
+def load_data(datapath: Path, reduced: bool = False, schema: Optional[Sequence[str]] = None) -> pd.DataFrame:
     if not schema:
         schema = columns_v1
-    df = pd.read_csv(datapath, 
-        skiprows    = 1, # supply fixed header in order to deal with Google Sheets export issues 
-        names       = schema, 
+    df = pd.read_csv(datapath,
+        skiprows    = 1, # supply fixed header in order to deal with Google Sheets export issues
+        names       = schema,
         usecols     = (lambda _: _ not in drop_cols) if reduced else None,
         dayfirst    = True, # source data does not have consistent date format so cannot rely on inference
         parse_dates = ["Date Announced", "Status Change Date"])
@@ -345,7 +345,10 @@ def replace_district_names(df_state: pd.DataFrame, state_district_maps: pd.DataF
 def load_statewise_data(statewise_data_path: Path, drop_unassigned: bool = True) -> pd.DataFrame:
     df_raw = pd.read_csv(statewise_data_path, parse_dates = ["Date"])
     df_raw.rename(columns=state_code_lookup, inplace=True)
-    df = pd.DataFrame(df_raw.set_index(["Date","Status"]).unstack().unstack()).reset_index()
+    # NOTE: df_raw could be DataFrame or TextParser. Force it to be DataFrame to keep
+    # pylint happy.
+    df_raw = pd.DataFrame(df_raw).set_index(["Date", "Status"]).unstack().unstack()
+    df = df_raw.reset_index()
     df.columns = ["state", "current_status", "status_change_date", "num_cases"]
     df.replace("Confirmed", "Hospitalized", inplace=True)
     # drop negative cases and cases with no state assigned

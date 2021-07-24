@@ -18,9 +18,9 @@ def load_migration_matrix(matrix_path: Path, populations: np.array) -> np.matrix
     return M
 
 def district_migration_matrices(
-    matrix_path: Path, 
+    matrix_path: Path,
     states: Sequence[str]) -> Dict[str, np.matrix]:
-    mm = pd.read_csv(matrix_path)
+    mm = pd.DataFrame(pd.read_csv(matrix_path))  # force it to be DataFrame
     aggregations = dict()
     for col in  ['D_StateCensus2011', 'D_DistrictCensus2011', 'O_StateCensus2011', 'O_DistrictCensus2011']:
         mm[col] = mm[col].str.title().str.replace("&", "and")
@@ -36,8 +36,8 @@ def district_migration_matrices(
         Mn = M/M.sum(axis = 0)
         Mn[np.isnan(Mn)] = 0
         aggregations[state] = (
-            pivot.index, 
-            grouped_mm_state.groupby("O_DistrictCensus2011")["O_Population_2011"].agg(lambda x: list(x)[0]).values, 
+            pivot.index,
+            grouped_mm_state.groupby("O_DistrictCensus2011")["O_Population_2011"].agg(lambda x: list(x)[0]).values,
             Mn
         )
     return aggregations
