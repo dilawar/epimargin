@@ -11,7 +11,7 @@ district_2011_replacements = {
         'Mumbai Suburban' : 'Mumbai'}
  }
 
-def load_migration_matrix(matrix_path: Path, populations: np.array) -> np.matrix:
+def load_migration_matrix(matrix_path: Path, populations: np.ndarray) -> np.ndarray:
     M  = np.loadtxt(matrix_path, delimiter=',') # read in raw data
     M *= populations[:,  None]                  # weight by population
     M /= M.sum(axis = 0)                        # normalize
