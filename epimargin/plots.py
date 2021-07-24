@@ -55,22 +55,6 @@ PRED_PURPLE = "#554B68"
 ## policy simulations
 SIM_PALETTE = ["#437034", "#7D4343", "#43587D", "#7D4370"]
 
-# FIXME: Maptlotlib 3>.1.x as rebuild_if_missing set to True.
-# Also this is not used anywhere.
-## typography
-#def rebuild_font_cache():
-#    import matplotlib.font_manager
-#    matplotlib.font_manager._rebuild()
-
-def despine(**kwargs):
-    pass
-
-def grid(flag):
-    if flag:
-        pass
-    else:
-        pass
-
 # container class for different theme
 Aesthetics = namedtuple(
     "Aesthetics",
@@ -556,3 +540,5 @@ def double_choropleth_v(*args, **kwargs):
 # FIXME: lambda x: PlotDevice(...) does not have vertical or horizontal properties
 # double_choropleth.horizontal = double_choropleth
 # double_choropleth.vertical   = double_choropleth_v
+
+from matplotlib.pyplot import *
