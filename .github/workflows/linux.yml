@@ -25,7 +25,8 @@ jobs:
         poetry install
     - name: Lint and type checking
       run: |
-        poetry run mypy --ignore-missing-imports --no-install-types epimargin
+        poetry run mypy --install-types --non-interactive epimargin
+        poetry run mypy --ignore-missing-imports epimargin
         poetry run pylint -E epimargin
     - name: Test with pytest
       run: |
